@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Gestión Óptica IVISION</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{background:linear-gradient(135deg,#e8f5e9,#f4f6f9);color:#333;}
+
+/* LOGIN */
+#menuInicio{display:flex;justify-content:center;align-items:center;height:100vh;}
+.card{
+  background:white;padding:30px;border-radius:16px;
+  box-shadow:0 15px 35px rgba(0,0,0,0.15);
+  width:350px;text-align:center;
+}
+
+/* INPUTS MÁS PEQUEÑOS */
+input{
+  width:220px;
+  padding:6px 8px;
+  margin:6px auto;
+  border:1px solid #ccc;
+  border-radius:6px;
+  font-size:13px;
+  display:block;
+}
+
+input:focus{
+  border-color:#43a047;
+  outline:none;
+  box-shadow:0 0 0 2px rgba(67,160,71,0.15);
+}
+
+.form-group{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+
+button{
+  padding:8px 12px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:13px;
+}
+.primary{background:#43a047;color:white;}
+.primary:hover{background:#2e7d32;}
+a{color:#1b5e20;text-decoration:none;font-weight:500;}
+
+/* MODAL */
+.modal{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.5);
+  display:none;justify-content:center;align-items:center;
+}
+.modal-content{
+  background:white;padding:20px;border-radius:14px;
+  width:300px;box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+.close{float:right;font-size:16px;cursor:pointer;color:#e53935;}
+
+/* SISTEMA */
+header{
+  background:linear-gradient(90deg,#1b5e20,#43a047);
+  color:white;padding:20px;text-align:center;
+}
+nav{
+  background:white;display:flex;justify-content:space-between;
+  padding:12px 25px;box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+nav button{background:#43a047;color:white;font-size:13px;}
+nav button:hover{background:#2e7d32;}
+
+.container{padding:25px;max-width:1100px;margin:auto;}
+
+.card-sis{
+  background:white;padding:20px;border-radius:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  margin-bottom:25px;display:none;
+}
+.card-sis.active{display:block;}
+
+table{width:100%;border-collapse:collapse;margin-top:15px;font-size:13px;}
+th{background:#1b5e20;color:white;padding:8px;}
+td{padding:6px;background:#fafafa;text-align:center;}
+tr:nth-child(even) td{background:#f1f8f4;}
+
+.btn-delete{
+  background:#e53935;color:white;
+  padding:4px 8px;border-radius:4px;
+  font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="menuInicio">
+  <div class="card">
+    <h2>Bienvenido a IVISION</h2>
+    <input type="text" id="loginUsuario" placeholder="Usuario">
+    <input type="password" id="loginPassword" placeholder="Contraseña">
+    <button class="primary" onclick="iniciarSesion()">Iniciar sesión</button>
+    <p style="margin-top:10px;">¿No tienes cuenta?
+      <a href="#" onclick="abrirModal()">Crear cuenta</a>
+    </p>
+  </div>
+</div>
+
+<!-- MODAL REGISTRO -->
+<div id="modalRegistro" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="cerrarModal()">✖</span>
+    <h3>Registro</h3>
+    <input type="text" id="regUsuario" placeholder="Usuario nuevo">
+    <input type="password" id="regPassword" placeholder="Contraseña">
+    <button class="primary" onclick="registrarUsuario()">Registrarse</button>
+  </div>
+</div>
+
+<!-- SISTEMA -->
+<div id="sistema" style="display:none;">
+<header><h1>Sistema de Gestión Óptica IVISION</h1></header>
+
+<nav>
+<div>
+<button onclick="mostrarSeccion('expedientes')">Expedientes</button>
+<button onclick="mostrarSeccion('ventas')">Ventas</button>
+<button onclick="mostrarSeccion('reportes')">Reportes</button>
+</div>
+<button onclick="cerrarSesion()" style="background:#e53935;">Cerrar sesión</button>
+</nav>
+
+<div class="container">
+
+<div id="expedientes" class="card-sis active">
+<h2>Expedientes</h2>
+
+<div class="form-group">
+<input type="text" id="nombrePaciente" placeholder="Nombre">
+<input type="date" id="fechaNacimiento">
+<input type="text" id="telefonoPaciente" placeholder="Teléfono">
+<input type="text" id="diagnosticoPaciente" placeholder="Diagnóstico">
+</div>
+
+<button class="primary" onclick="agregarExpediente()">Guardar</button>
+
+<table>
+<thead>
+<tr>
+<th>Nombre</th><th>Edad</th><th>Teléfono</th><th>Diagnóstico</th><th>Acción</th>
+</tr>
+</thead>
+<tbody id="tablaExpedientes"></tbody>
+</table>
+</div>
+
+<div id="ventas" class="card-sis">
+<h2>Ventas</h2>
+
+<div class="form-group">
+<input type="text" id="clienteVenta" placeholder="Cliente">
+<input type="text" id="productoVenta" placeholder="Producto">
+<input type="number" id="precioVenta" placeholder="Precio">
+</div>
+
+<button class="primary" onclick="registrarVenta()">Registrar venta</button>
+
+<table>
+<thead>
+<tr>
+<th>Cliente</th><th>Producto</th><th>Precio</th><th>Acción</th>
+</tr>
+</thead>
+<tbody id="tablaVentas"></tbody>
+</table>
+</div>
+
+<div id="reportes" class="card-sis">
+<h2>Reportes</h2>
+<p>Total: <strong id="totalVentas">$0.00</strong></p>
+<button class="primary" onclick="generarPDF()">Descargar PDF</button>
+</div>
+
+</div>
+</div>
+
+<script>
+let expedientes=JSON.parse(localStorage.getItem("expedientes"))||[];
+let ventas=JSON.parse(localStorage.getItem("ventas"))||[];
+
+function guardarDatos(){
+localStorage.setItem("expedientes",JSON.stringify(expedientes));
+localStorage.setItem("ventas",JSON.stringify(ventas));
+}
+
+function abrirModal(){modalRegistro.style.display="flex";}
+function cerrarModal(){modalRegistro.style.display="none";}
+
+function registrarUsuario(){
+if(!regUsuario.value||!regPassword.value)return alert("Completa datos");
+localStorage.setItem("usuario",regUsuario.value);
+localStorage.setItem("password",regPassword.value);
+alert("Registro exitoso");
+cerrarModal();
+}
+
+function iniciarSesion(){
+if(loginUsuario.value===localStorage.getItem("usuario")&&
+loginPassword.value===localStorage.getItem("password")){
+menuInicio.style.display="none";
+sistema.style.display="block";
+}else alert("Datos incorrectos");
+}
+
+function cerrarSesion(){
+sistema.style.display="none";
+menuInicio.style.display="flex";
+}
+
+function mostrarSeccion(id){
+document.querySelectorAll('.card-sis').forEach(c=>c.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+}
+
+function agregarExpediente(){
+if(!nombrePaciente.value||!fechaNacimiento.value)return alert("Completa datos");
+const edad=new Date().getFullYear()-new Date(fechaNacimiento.value).getFullYear();
+expedientes.push({
+nombre:nombrePaciente.value,
+edad,
+telefono:telefonoPaciente.value,
+diagnostico:diagnosticoPaciente.value
+});
+guardarDatos();renderExpedientes();
+}
+
+function renderExpedientes(){
+tablaExpedientes.innerHTML="";
+expedientes.forEach((e,i)=>{
+tablaExpedientes.innerHTML+=`
+<tr>
+<td>${e.nombre}</td>
+<td>${e.edad}</td>
+<td>${e.telefono}</td>
+<td>${e.diagnostico}</td>
+<td><button class="btn-delete" onclick="eliminarExpediente(${i})">Eliminar</button></td>
+</tr>`;
+});
+}
+
+function eliminarExpediente(i){
+expedientes.splice(i,1);guardarDatos();renderExpedientes();
+}
+
+function registrarVenta(){
+const precio=parseFloat(precioVenta.value);
+if(isNaN(precio)||precio<=0)return alert("Precio inválido");
+ventas.push({cliente:clienteVenta.value,producto:productoVenta.value,precio});
+guardarDatos();renderVentas();actualizarTotal();
+}
+
+function renderVentas(){
+tablaVentas.innerHTML="";
+ventas.forEach((v,i)=>{
+tablaVentas.innerHTML+=`
+<tr>
+<td>${v.cliente}</td>
+<td>${v.producto}</td>
+<td>$${v.precio.toFixed(2)}</td>
+<td><button class="btn-delete" onclick="eliminarVenta(${i})">Eliminar</button></td>
+</tr>`;
+});
+}
+
+function eliminarVenta(i){
+ventas.splice(i,1);guardarDatos();renderVentas();actualizarTotal();
+}
+
+function actualizarTotal(){
+totalVentas.textContent="$"+ventas.reduce((s,v)=>s+v.precio,0).toFixed(2);
+}
+
+function generarPDF(){
+const{jsPDF}=window.jspdf;
+const doc=new jsPDF();
+doc.text("Reporte IVISION",20,20);
+let y=40;
+ventas.forEach(v=>{doc.text(`${v.cliente} - ${v.producto} - $${v.precio}`,20,y);y+=10;});
+doc.save("reporte.pdf");
+}
+
+window.onload=function(){renderExpedientes();renderVentas();actualizarTotal();}
+</script>
+
+</body>
+</html>
